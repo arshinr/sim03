@@ -105,6 +105,7 @@ public class AppExample {
 	static final int numOfDepts = 1;
 	static final int numOfMobilesPerDept = 4;
 	static final double EEG_TRANSMISSION_TIME = 10;
+	public static String arg = "";
 
 	/**
 	 * @param args
@@ -184,6 +185,10 @@ public class AppExample {
 		setMobilityPredictionError(Integer.parseInt(args[8]));
 		setLatencyBetweenCloudlets(Double.parseDouble(args[9]));
 
+		for(int i=0;i<10;i++) {
+			arg+=" "+args[i];
+		}
+		
 		/**
 		 * STEP 2: CREATE ALL DEVICES -> example from: CloudSim - example5.java
 		 **/

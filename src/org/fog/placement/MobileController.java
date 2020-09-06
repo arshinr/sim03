@@ -1,6 +1,7 @@
 package org.fog.placement;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -44,6 +45,7 @@ import org.fog.utils.TimeKeeper;
 import org.fog.vmmigration.Migration;
 import org.fog.vmmigration.MyStatistics;
 import org.fog.vmmigration.NextStep;
+import org.fog.vmmobile.AppExample;
 import org.fog.vmmobile.LogMobile;
 import org.fog.vmmobile.constants.MaxAndMin;
 import org.fog.vmmobile.constants.MobileEvents;
@@ -327,6 +329,7 @@ public class MobileController extends SimEntity {
 			printCostDetails();
 			printNetworkUsageDetails();
 			printMigrationsDetalis();
+			MakeOutFile();
 			System.exit(0);
 			break;
 
@@ -557,7 +560,8 @@ public class MobileController extends SimEntity {
 			e.printStackTrace();
 		}
 	}
-
+	double ecc=0;/////////////////////////////////////////////////////////////////////////////////
+	double eca=0;/////////////////////////////////////////////////////////////////////////////////
 	private void printPowerDetails() {
 		double energyConsumedMean = 0.0;
 		int j = 0;
@@ -576,6 +580,7 @@ public class MobileController extends SimEntity {
 		}
 		System.out.println("Total consumido Coudlets: " + energyConsumedMean + " Media: "
 			+ energyConsumedMean / j);
+		ecc = energyConsumedMean;/////////////////////////////////////////////////////////////////////////////////
 		printResults(String.valueOf(energyConsumedMean / j), "averageEnergyHistoryDevice.txt");
 		printResults(
 			String.valueOf(energyConsumedMean) + "\t" + String.valueOf(energyConsumedMean / j),
@@ -592,7 +597,10 @@ public class MobileController extends SimEntity {
 		}
 		System.out.println("Total consumido AP: " + energyConsumedMean + " Media: "
 			+ energyConsumedMean / j);
+		eca = energyConsumedMean;/////////////////////////////////////////////////////////////////////////////////
+
 		energyConsumedMean = 0.0;
+		
 		System.out.println("=========================================");
 		System.out.println("SMARTTHINGS ENERGY CONSUMPTION");
 		System.out.println("=========================================");
@@ -720,7 +728,8 @@ public class MobileController extends SimEntity {
 				+ String.valueOf(NetworkUsageMonitor.getNetworkUsage()) + '\t' + CloudSim.clock(),
 			"totalNetworkUsage.txt");
 	}
-
+	
+	double mdt=0;/////////////////////////////////////////////////////////////////////////////
 	private void printMigrationsDetalis() {
 		System.out.println("=========================================");
 		System.out.println("==============MIGRATIONS=================");
@@ -822,6 +831,8 @@ public class MobileController extends SimEntity {
 			"results.txt");
 		printResults(String.valueOf(MyStatistics.getInstance().getAverageDowntime()),
 			"averageDowntime.txt");
+		mdt=tempoDowntimeMax;/////////////////////////////////////////////////////////////////////////////
+
 		System.out.println("Max Downtime: " + tempoDowntimeMax);
 		printResults(String.valueOf(tempoDowntimeMax), "averageDowntimeMax.txt");
 		System.out.println("Tuple lost: "
@@ -1007,4 +1018,52 @@ public class MobileController extends SimEntity {
 		MobileController.migrationAble = migrationAble;
 	}
 
+	private void MakeOutFile() {
+		String directoryName = "ravesh";
+	    File directory = new File(directoryName);
+	    if (! directory.exists()){
+	        directory.mkdir();
+	    }
+		
+		String OutFileName = "ravesh/ravesh.txt";
+		File tempFile = new File(OutFileName);
+		boolean exists = tempFile.exists();
+		if(!exists) {
+			printResults("Method	Total Network Usage"+ '\t'
+				+ "Average Delay After New Connection"+ '\t'+"Lost Tuple (%)"+ '\t'+"Average Downtime"+'\t'+ "Input Parameters "+'\t'+ "Total energy consumed Coudlets" +'\t'+ "Total energy consumed AP" +'\t'+ "Migration' network usage (total)" +'\t'+ "Migration' network usage (mean)" +'\t'+ "Total of migrations" +'\t'+ "Total of handoff" +'\t'+ "Different Cloudlets reached along the user's path" +'\t'+ "Max Downtime" , OutFileName);
+			printResults(migmethod(AppExample.getPolicyReplicaVM())+"	"+String.valueOf(NetworkUsageMonitor.getNetworkUsage())+ '\t'
+					+String.valueOf(MyStatistics.getInstance().getAverageDelayAfterNewConnection()+"\t"
+					+((double) MyStatistics.getInstance().getMyCountLostTuple() / MyStatistics
+					.getInstance().getMyCountTotalTuple()) * 100 + "%"+ '\t'
+					+String.valueOf(MyStatistics.getInstance().getAverageDowntime())+"\t"+AppExample.arg+"\t"+ecc+"\t"+eca+"\t"+NetworkUsageMonitor.getNetWorkUsageInMigration()+"\t"+NetworkUsageMonitor.getNetWorkUsageInMigration()
+					/ MyStatistics.getInstance().getTotalMigrations()+"\t"+MyStatistics.getInstance().getTotalMigrations()+"\t"+MyStatistics.getInstance().getTotalHandoff()+"\t"+MyStatistics.getInstance().getMyCountLowestLatency()+"\t"+mdt),
+					OutFileName);
+			
+		}
+		else {
+		printResults(migmethod(AppExample.getPolicyReplicaVM())+"	"+String.valueOf(NetworkUsageMonitor.getNetworkUsage())+ '\t'
+					+String.valueOf(MyStatistics.getInstance().getAverageDelayAfterNewConnection()+"\t"
+					+((double) MyStatistics.getInstance().getMyCountLostTuple() / MyStatistics
+					.getInstance().getMyCountTotalTuple()) * 100 + "%"+ '\t'
+					+String.valueOf(MyStatistics.getInstance().getAverageDowntime())+"\t"+AppExample.arg+"\t"+ecc+"\t"+eca+"\t"+NetworkUsageMonitor.getNetWorkUsageInMigration()+"\t"+NetworkUsageMonitor.getNetWorkUsageInMigration()
+					/ MyStatistics.getInstance().getTotalMigrations()+"\t"+MyStatistics.getInstance().getTotalMigrations()+"\t"+MyStatistics.getInstance().getTotalHandoff()+"\t"+MyStatistics.getInstance().getMyCountLowestLatency()+"\t"+mdt),
+					OutFileName);
+		}
+	}
+	public static String migmethod(int a) {
+		switch (a) {
+		case 0:
+			return "MIGRATION_COMPLETE_VM";
+		case 1:
+			return "MIGRATION_CONTAINER_VM";
+		case 2:
+			return "LIVE_MIGRATION";
+		case 3:
+			return "MIGRROR";
+		case 4:
+			return "PRECOPYLIVE";
+		}
+		return null;
+	}
+	
 }
